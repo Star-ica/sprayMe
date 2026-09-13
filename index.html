@@ -32,7 +32,6 @@
     overflow-x: hidden;
   }
 
-  /* ── Header ── */
   header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 1.1rem 2rem;
@@ -73,7 +72,6 @@
   #wallet-btn:hover { background: var(--gold-d); }
   #wallet-btn.connected { background: var(--green); color: #fff; }
 
-  /* ── Balance pill ── */
   #balance-pill {
     display: none;
     align-items: center; gap: .4rem;
@@ -84,7 +82,6 @@
   }
   #balance-pill.show { display: inline-flex; }
 
-  /* ── Main ── */
   main { max-width: 500px; margin: 0 auto; padding: 2.2rem 1.4rem 5rem; }
 
   .eyebrow {
@@ -99,7 +96,6 @@
   }
   .subtitle { color: var(--muted); font-size: .92rem; margin-bottom: 2rem; line-height: 1.6; }
 
-  /* ── Card ── */
   .card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 1.2rem; padding: 1.5rem; margin-bottom: 1.1rem;
@@ -126,7 +122,6 @@
   input::placeholder { color: var(--muted); }
   input.error-field { border-color: var(--danger); }
 
-  /* ── Rate pills ── */
   .rate-group { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .3rem; }
   .rate-pill {
     flex: 1; min-width: 64px; background: var(--surface2);
@@ -141,7 +136,6 @@
   .custom-wrap { margin-top: .65rem; display: none; }
   .custom-wrap.show { display: block; }
 
-  /* ── Status ── */
   .status-box {
     border-radius: .6rem; padding: .65rem .9rem;
     font-size: .8rem; line-height: 1.5;
@@ -152,7 +146,6 @@
   .status-box.ok    { background: rgba(0,195,106,.08); border:1px solid rgba(0,195,106,.3); color: var(--green); }
   .status-box.error { background: rgba(255,77,109,.08); border:1px solid rgba(255,77,109,.3); color: var(--danger); }
 
-  /* ── SPRAY button ── */
   #spray-btn {
     width: 100%;
     background: linear-gradient(135deg, var(--gold) 0%, #FF9500 100%);
@@ -167,7 +160,7 @@
     display: flex; align-items: center; justify-content: center; gap: .5rem;
     opacity: .38; pointer-events: none;
   }
-  #spray-btn.ready { opacity:1; pointer-events:auto; animation: glow 2.4s ease-in-out infinite; }
+  #spray-btn.ready  { opacity:1; pointer-events:auto; animation: glow 2.4s ease-in-out infinite; }
   #spray-btn.spraying {
     background: linear-gradient(135deg, var(--danger) 0%, #A8001A 100%);
     box-shadow: 0 4px 28px rgba(255,77,109,.35); animation: none;
@@ -179,7 +172,6 @@
 
   .hint { font-size: .78rem; color: var(--muted); text-align: center; margin-top: .55rem; }
 
-  /* ── Counter ── */
   #live-counter { display:none; text-align:center; margin-top:1.5rem; }
   #live-counter.show { display:block; }
   #counter-amount {
@@ -194,23 +186,35 @@
   #counter-name  { color: var(--text); font-weight: 600; }
   #counter-rate  { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
 
-  /* ── Receipt ── */
+  /* ── Receipt modal ── */
+  #receipt-overlay {
+    position: fixed; inset: 0; z-index: 400;
+    background: rgba(10,10,16,.85); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  #receipt-overlay.show { opacity: 1; pointer-events: auto; }
   #receipt {
-    display:none;
     background: linear-gradient(140deg,#0B1E14,#07110D);
-    border: 1px solid var(--green); border-radius: 1.2rem;
-    padding: 1.6rem; margin-top: 1.1rem; text-align: center;
+    border: 1px solid var(--green); border-radius: 1.5rem;
+    padding: 2.2rem 2rem 1.8rem;
+    text-align: center; max-width: 360px; width: 90%;
+    position: relative;
+    transform: scale(.88) translateY(24px);
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
   }
-  #receipt.show { display:block; animation: up .4s ease; }
-  #receipt-icon { font-size: 2.6rem; margin-bottom: .45rem; }
-  #receipt-title {
-    font-family:'Syne',sans-serif;
-    font-size:1.35rem;font-weight:800;color:var(--green);margin-bottom:.25rem;
+  #receipt-overlay.show #receipt { transform: scale(1) translateY(0); }
+  #receipt-close {
+    position: absolute; top: .9rem; right: 1rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1.4rem; line-height: 1;
+    transition: color .15s;
   }
-  #receipt-amount {
-    font-family:'Syne',sans-serif;
-    font-size:2.2rem;font-weight:800;color:var(--text);margin:.6rem 0 .2rem;
-  }
+  #receipt-close:hover { color: var(--text); }
+  #receipt-icon { font-size: 3rem; margin-bottom: .6rem; }
+  #receipt-title { font-family:'Syne',sans-serif; font-size:1.5rem;font-weight:800;color:var(--green);margin-bottom:.25rem; }
+  #receipt-amount { font-family:'Syne',sans-serif; font-size:2.6rem;font-weight:800;color:var(--text);margin:.6rem 0 .2rem; }
   #receipt-usdt { font-size:.8rem;color:var(--usdt);font-weight:600;margin-bottom:.5rem; }
   #receipt-msg  { color:var(--muted);font-size:.88rem;line-height:1.6; }
   #receipt-addr { font-size:.72rem;color:var(--muted);word-break:break-all;margin-top:.45rem; }
@@ -227,13 +231,9 @@
   }
   .btn-secondary:hover { border-color:var(--gold); color:var(--gold); }
 
-  /* ── Canvas ── */
-  #spray-canvas {
-    position:fixed;inset:0;pointer-events:none;z-index:200;display:none;
-  }
+  #spray-canvas { position:fixed;inset:0;pointer-events:none;z-index:200;display:none; }
   #spray-canvas.active { display:block; }
 
-  /* ── Toast ── */
   #toast {
     position:fixed;bottom:2rem;left:50%;
     transform:translateX(-50%) translateY(130px);
@@ -245,7 +245,6 @@
   }
   #toast.show { transform:translateX(-50%) translateY(0); }
 
-  /* ── Connect overlay ── */
   #connect-overlay {
     position:fixed;inset:0;
     background:rgba(10,10,16,.9);backdrop-filter:blur(10px);
@@ -258,10 +257,7 @@
     border-radius:1.4rem;padding:2.3rem 1.9rem;
     text-align:center;max-width:330px;width:90%;
   }
-  .connect-box h2 {
-    font-family:'Syne',sans-serif;
-    font-size:1.55rem;font-weight:800;margin-bottom:.45rem;
-  }
+  .connect-box h2 { font-family:'Syne',sans-serif; font-size:1.55rem;font-weight:800;margin-bottom:.45rem; }
   .connect-box p { color:var(--muted);font-size:.88rem;line-height:1.6; }
   .connect-big {
     margin-top:1.4rem;width:100%;
@@ -283,7 +279,7 @@
     <h2>Connect to Spray</h2>
     <p>Connect your MetaMask wallet to spray USDT at the celebrant.</p>
     <button class="connect-big" onclick="connectWallet()">Connect MetaMask</button>
-    <p style="margin-top:.9rem;font-size:.72rem;color:var(--muted)">Botchain </p>
+    <p style="margin-top:.9rem;font-size:.72rem;color:var(--muted)">Botchain</p>
   </div>
 </div>
 
@@ -341,23 +337,24 @@
   </button>
   <p class="hint" id="btn-hint">Fill in the details above to enable spraying</p>
 
-  <!-- Live counter -->
   <div id="live-counter">
     <div id="counter-amount">0.00<span class="counter-unit">USDT</span></div>
     <div id="counter-label">sprayed at <span id="counter-name"></span></div>
     <div id="counter-rate"></div>
   </div>
 
-  <!-- Receipt -->
-  <div id="receipt">
-    <div id="receipt-icon">✅</div>
-    <div id="receipt-title">Spray Complete!</div>
-    <div id="receipt-amount"></div>
-    <div id="receipt-usdt">USDT sent on-chain</div>
-    <div id="receipt-msg"></div>
-    <div id="receipt-addr"></div>
-    <div id="receipt-tx"></div>
-    <button class="btn-secondary" onclick="resetForm()">Spray Again →</button>
+  <div id="receipt-overlay">
+    <div id="receipt">
+      <button id="receipt-close" onclick="resetForm()" aria-label="Close">✕</button>
+      <div id="receipt-icon">✅</div>
+      <div id="receipt-title">Spray Complete!</div>
+      <div id="receipt-amount"></div>
+      <div id="receipt-usdt">USDT sent on-chain</div>
+      <div id="receipt-msg"></div>
+      <div id="receipt-addr"></div>
+      <div id="receipt-tx"></div>
+      <button class="btn-secondary" onclick="resetForm()">Spray Again →</button>
+    </div>
   </div>
 </main>
 
@@ -365,22 +362,11 @@
 // ═══════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════
-
-// USDT contract address (same address used on both Celo & Botchain)
 const USDT_ADDRESS = '0x75edC9335175Fc0552D51D48439F229c10420fe3';
 
-// Block explorers per chain
-const EXPLORERS = {
-  
-  968:   'https://scan.bohr.life/tx/',
-};
+const EXPLORERS = { 968: 'https://scan.bohr.life/tx/' };
+const CHAIN_NAMES = { 968: 'Botchain' };
 
-// Chain display names
-const CHAIN_NAMES = {
-    968:   'Botchain',
-};
-
-// Minimal ERC-20 ABI — only what we need
 const ERC20_ABI = [
   'function transfer(address to, uint256 amount) returns (bool)',
   'function balanceOf(address account) view returns (uint256)',
@@ -393,16 +379,15 @@ let provider, signer, usdtContract;
 let walletConnected = false;
 let walletAddress   = '';
 let chainId         = 0;
-let usdtDecimals    = 6;
+const usdtDecimals  = 6; // USDT is always 6 — never fetched from chain
 let usdtBalance     = 0n;
 
 let spraying     = false;
-let sprayRate    = 0.50;   // USDT per second
-let sprayTotal   = 0;      // accumulated offline — display only
+let sprayRate    = 0.50;
+let sprayTotal   = 0;
 let tickInterval = null;
-const TICK_MS    = 100;    // 100 ms ticks for smooth counter
+const TICK_MS    = 100;
 
-// Canvas
 let canvas, ctx, particles = [];
 const EMOJIS = ['💵','💴','💶','💷','💸','🤑','💰','✨','🌟','💎'];
 
@@ -422,10 +407,7 @@ async function connectWallet() {
     walletAddress = await signer.getAddress();
     const net     = await provider.getNetwork();
     chainId       = Number(net.chainId);
-
-    usdtContract = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
-    usdtDecimals = 6; // USDT is always 6 decimals
-
+    usdtContract  = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
     await refreshBalance();
     walletConnected = true;
     onConnected();
@@ -446,16 +428,12 @@ async function refreshBalance() {
 
 function onConnected() {
   document.getElementById('connect-overlay').classList.add('hidden');
-
   const btn = document.getElementById('wallet-btn');
   btn.textContent = shortenAddr(walletAddress);
   btn.classList.add('connected');
-
   const badge = document.getElementById('chain-badge');
   badge.classList.add('show');
-  document.getElementById('chain-name').textContent =
-    CHAIN_NAMES[chainId] || `Chain ${chainId}`;
-
+  document.getElementById('chain-name').textContent = CHAIN_NAMES[chainId] || `Chain ${chainId}`;
   checkReady();
   showToast('🟢 Wallet connected');
 }
@@ -470,34 +448,39 @@ function checkReady() {
   const btn    = document.getElementById('spray-btn');
   const hint   = document.getElementById('btn-hint');
 
+  // Don't touch the button while actively spraying or loading
+  if (spraying || btn.className === 'loading') return;
+
   clearStatus();
   document.getElementById('honoree-addr').classList.remove('error-field');
 
   if (!walletConnected) {
-    btn.classList.remove('ready'); hint.textContent = 'Connect your wallet to spray'; return;
+    btn.className = ''; hint.textContent = 'Connect your wallet to spray'; return;
   }
   if (!name) {
-    btn.classList.remove('ready'); hint.textContent = "Enter the celebrant's name"; return;
+    btn.className = ''; hint.textContent = "Enter the celebrant's name"; return;
   }
   if (!addr) {
-    btn.classList.remove('ready'); hint.textContent = 'Enter the wallet address'; return;
+    btn.className = ''; hint.textContent = 'Enter the wallet address'; return;
   }
   if (!addrOk) {
-    btn.classList.remove('ready'); hint.textContent = 'Invalid wallet address';
+    btn.className = ''; hint.textContent = 'Invalid wallet address';
     document.getElementById('honoree-addr').classList.add('error-field'); return;
   }
   if (addr.toLowerCase() === walletAddress.toLowerCase()) {
-    btn.classList.remove('ready');
+    btn.className = '';
     setStatus('You cannot spray yourself!', 'error'); return;
   }
 
   hint.textContent = '';
-  btn.classList.add('ready');
+  btn.className = 'ready';
 }
 
+// ── Rate selection — works before, during, and after spraying ──
 function selectRate(el) {
   document.querySelectorAll('.rate-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
+
   const wrap = document.getElementById('custom-wrap');
   if (el.dataset.rate === 'custom') {
     wrap.classList.add('show');
@@ -507,11 +490,21 @@ function selectRate(el) {
     wrap.classList.remove('show');
     sprayRate = parseFloat(el.dataset.rate);
   }
+
+  // Refresh the live counter label if spraying right now
+  if (spraying) {
+    document.getElementById('counter-rate').textContent = `Rate: $${sprayRate.toFixed(2)} USDT/s`;
+  }
 }
 
 function updateCustom() {
   const v = parseFloat(document.getElementById('custom-input').value);
-  if (!isNaN(v) && v > 0) sprayRate = v;
+  if (!isNaN(v) && v > 0) {
+    sprayRate = v;
+    if (spraying) {
+      document.getElementById('counter-rate').textContent = `Rate: $${sprayRate.toFixed(2)} USDT/s`;
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -524,18 +517,19 @@ function toggleSpray() {
 
 function startSpray() {
   const name = document.getElementById('honoree-name').value.trim();
-
   spraying   = true;
   sprayTotal = 0;
 
-  setBtnState('spraying');
+  const btn = document.getElementById('spray-btn');
+  btn.className = 'spraying';
+  document.getElementById('btn-icon').textContent = '🛑';
+  document.getElementById('btn-text').textContent = 'STOP SPRAYING';
+
   showCounter(name);
   initCanvas();
   document.getElementById('spray-canvas').classList.add('active');
 
-  // Pure local tick — no chain calls
   tickInterval = setInterval(() => {
-    if (!spraying) return;
     sprayTotal += sprayRate * (TICK_MS / 1000);
     updateCounter();
     spawnDollars(Math.max(2, Math.floor(sprayRate * 3)));
@@ -546,7 +540,6 @@ async function stopSpray() {
   clearInterval(tickInterval);
   spraying = false;
 
-  // Fade out canvas after 2 s
   setTimeout(() => {
     document.getElementById('spray-canvas').classList.remove('active');
     particles = [];
@@ -554,10 +547,10 @@ async function stopSpray() {
 
   document.getElementById('live-counter').classList.remove('show');
 
-  const name       = document.getElementById('honoree-name').value.trim();
-  const addr       = document.getElementById('honoree-addr').value.trim();
-  const totalUsdt  = Math.max(0.01, parseFloat(sprayTotal.toFixed(6)));
-  const amountWei  = ethers.parseUnits(totalUsdt.toFixed(6), usdtDecimals);
+  const name      = document.getElementById('honoree-name').value.trim();
+  const addr      = document.getElementById('honoree-addr').value.trim();
+  const totalUsdt = Math.max(0.01, parseFloat(sprayTotal.toFixed(6)));
+  const amountWei = ethers.parseUnits(totalUsdt.toFixed(6), usdtDecimals);
 
   // Balance check
   if (amountWei > usdtBalance) {
@@ -566,21 +559,22 @@ async function stopSpray() {
       `❌ Insufficient USDT. You have ${bal.toFixed(2)} USDT but tried to spray ${totalUsdt.toFixed(2)} USDT.`,
       'error'
     );
-    setBtnState('ready');
+    checkReady(); // restore button state
     return;
   }
 
-  setBtnState('loading', 'Sending USDT…');
+  // Loading state
+  const btn = document.getElementById('spray-btn');
+  btn.className = 'loading';
+  document.getElementById('btn-icon').textContent = '⏳';
+  document.getElementById('btn-text').textContent = 'Sending USDT…';
   setStatus('⏳ Confirm the transaction in MetaMask…', 'info');
 
   try {
-    // Single ERC-20 transfer — the only on-chain call
     const tx = await usdtContract.transfer(addr, amountWei);
     setStatus('⛓ Transaction sent — confirming…', 'info');
-
     await tx.wait();
     clearStatus();
-
     await refreshBalance();
     showReceipt(name, addr, totalUsdt, tx.hash);
     showToast(`🎉 ${totalUsdt.toFixed(2)} USDT sprayed at ${name}!`);
@@ -591,27 +585,12 @@ async function stopSpray() {
     showToast('Transaction failed', 'error');
   }
 
-  setBtnState('ready');
+  checkReady(); // always restore button to correct state
 }
 
 // ═══════════════════════════════════════════════════
 //  UI HELPERS
 // ═══════════════════════════════════════════════════
-function setBtnState(state, label) {
-  const btn  = document.getElementById('spray-btn');
-  const icon = document.getElementById('btn-icon');
-  const text = document.getElementById('btn-text');
-  btn.className = state;
-  if (state === 'spraying') {
-    icon.textContent = '🛑'; text.textContent = 'STOP SPRAYING';
-  } else if (state === 'loading') {
-    icon.textContent = '⏳'; text.textContent = label || 'Processing…';
-  } else {
-    icon.textContent = '💸'; text.textContent = 'SPRAY!';
-    btn.classList.add('ready');
-  }
-}
-
 function showCounter(name) {
   document.getElementById('counter-name').textContent = name;
   document.getElementById('counter-rate').textContent = `Rate: $${sprayRate.toFixed(2)} USDT/s`;
@@ -631,11 +610,11 @@ function showReceipt(name, addr, total, txHash) {
   const explorer = EXPLORERS[chainId] || 'https://scan.bohr.life/tx/';
   document.getElementById('receipt-tx').innerHTML =
     `<a href="${explorer + txHash}" target="_blank">View transaction ↗</a>`;
-  document.getElementById('receipt').classList.add('show');
+  document.getElementById('receipt-overlay').classList.add('show');
 }
 
 function resetForm() {
-  document.getElementById('receipt').classList.remove('show');
+  document.getElementById('receipt-overlay').classList.remove('show');
   document.getElementById('honoree-name').value = '';
   document.getElementById('honoree-addr').value = '';
   sprayTotal = 0;
@@ -689,7 +668,7 @@ function animateCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x  += p.vx; p.y += p.vy;
+    p.x += p.vx; p.y += p.vy;
     p.vy += 0.28; p.vx *= 0.992;
     p.rot += p.rotV;
     p.life -= p.decay;
@@ -716,7 +695,7 @@ window.addEventListener('resize', () => {
 let toastTimer;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
-  t.textContent   = msg;
+  t.textContent = msg;
   t.style.color       = type === 'error' ? 'var(--danger)' : 'var(--green)';
   t.style.borderColor = type === 'error' ? 'var(--danger)' : 'var(--green)';
   t.classList.add('show');
@@ -724,9 +703,6 @@ function showToast(msg, type) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
 }
 
-// ═══════════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════════
 function shortenAddr(a) { return a.slice(0, 6) + '…' + a.slice(-4); }
 
 // ═══════════════════════════════════════════════════
@@ -742,10 +718,7 @@ window.addEventListener('load', async () => {
         walletAddress = await signer.getAddress();
         const net     = await provider.getNetwork();
         chainId       = Number(net.chainId);
-
-        usdtContract = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
-        usdtDecimals = 6; // USDT is always 6 decimals
-
+        usdtContract  = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
         await refreshBalance();
         walletConnected = true;
         onConnected();
