@@ -283,7 +283,7 @@
     <h2>Connect to Spray</h2>
     <p>Connect your MetaMask wallet to spray USDT at the celebrant.</p>
     <button class="connect-big" onclick="connectWallet()">Connect MetaMask</button>
-    <p style="margin-top:.9rem;font-size:.72rem;color:var(--muted)">Celo Mainnet · Botchain (677)</p>
+    <p style="margin-top:.9rem;font-size:.72rem;color:var(--muted)">Botchain </p>
   </div>
 </div>
 
@@ -367,20 +367,17 @@
 // ═══════════════════════════════════════════════════
 
 // USDT contract address (same address used on both Celo & Botchain)
-const USDT_ADDRESS = '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e';
+const USDT_ADDRESS = '0x75edC9335175Fc0552D51D48439F229c10420fe3';
 
 // Block explorers per chain
 const EXPLORERS = {
-  42220: 'https://celoscan.io/tx/',
-  44787: 'https://alfajores.celoscan.io/tx/',
-  677:   'https://botchain.toffeeshare.com/tx/',
+  
+  968:   'https://scan.bohr.life/tx/',
 };
 
 // Chain display names
 const CHAIN_NAMES = {
-  42220: 'Celo',
-  44787: 'Alfajores',
-  677:   'Botchain',
+    968:   'Botchain',
 };
 
 // Minimal ERC-20 ABI — only what we need
@@ -631,7 +628,7 @@ function showReceipt(name, addr, total, txHash) {
   document.getElementById('receipt-msg').innerHTML =
     `<strong style="color:var(--text)">${shortenAddr(walletAddress)}</strong> sprayed <strong style="color:var(--gold)">${name}</strong>`;
   document.getElementById('receipt-addr').textContent = 'Sent to: ' + addr;
-  const explorer = EXPLORERS[chainId] || 'https://celoscan.io/tx/';
+  const explorer = EXPLORERS[chainId] || 'https://scan.bohr.life/tx/';
   document.getElementById('receipt-tx').innerHTML =
     `<a href="${explorer + txHash}" target="_blank">View transaction ↗</a>`;
   document.getElementById('receipt').classList.add('show');
