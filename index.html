@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SprayChain — Spray the Celebrant</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold:      #F5C842;
+    --gold-deep: #C9961A;
+    --green:     #00C36A;
+    --bg:        #0A0A10;
+    --surface:   #13131F;
+    --surface2:  #1C1C2E;
+    --border:    rgba(245,200,66,.18);
+    --text:      #F0EDE6;
+    --muted:     #7A7A8A;
+    --danger:    #FF4D6D;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,16,.92);
+    backdrop-filter: blur(12px);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    letter-spacing: -.02em; color: var(--gold);
+  }
+  .logo span { color: var(--text); }
+
+  #wallet-btn {
+    background: var(--gold); color: #0A0A10;
+    border: none; border-radius: 999px;
+    padding: .55rem 1.3rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600; font-size: .9rem;
+    cursor: pointer; transition: background .2s, transform .1s;
+  }
+  #wallet-btn:hover { background: var(--gold-deep); transform: scale(1.04); }
+  #wallet-btn.connected { background: var(--green); color: #fff; }
+
+  .chain-badge {
+    display: none;
+    align-items: center; gap: .35rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 999px; padding: .3rem .8rem;
+    font-size: .75rem; font-weight: 600; color: var(--muted);
+  }
+  .chain-badge.show { display: inline-flex; }
+  .chain-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* ── Main ── */
+  main { max-width: 520px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  .eyebrow {
+    font-size: .75rem; font-weight: 600;
+    letter-spacing: .12em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: .5rem;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 6vw, 2.8rem);
+    font-weight: 800; line-height: 1.08; margin-bottom: .6rem;
+  }
+  .subtitle {
+    color: var(--muted); font-size: .95rem;
+    margin-bottom: 2.2rem; line-height: 1.6;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 1.2rem; padding: 1.6rem; margin-bottom: 1.2rem;
+  }
+  .card-title {
+    font-weight: 600; font-size: .85rem; color: var(--muted);
+    margin-bottom: 1.1rem; text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  label {
+    display: block; font-size: .85rem; font-weight: 500;
+    color: var(--muted); margin-bottom: .35rem; margin-top: 1rem;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], input[type="number"] {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: .6rem;
+    color: var(--text); font-family: 'Space Grotesk', sans-serif;
+    font-size: .95rem; padding: .75rem 1rem;
+    outline: none; transition: border-color .2s;
+  }
+  input:focus { border-color: var(--gold); }
+  input::placeholder { color: var(--muted); }
+  input.error { border-color: var(--danger); }
+
+  /* ── Rate pills ── */
+  .rate-group { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .rate-pill {
+    flex: 1; min-width: 70px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: .6rem; padding: .6rem .5rem;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .88rem; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: all .18s; user-select: none;
+  }
+  .rate-pill:hover { border-color: var(--gold); color: var(--gold); }
+  .rate-pill.active { background: var(--gold); border-color: var(--gold); color: #0A0A10; }
+  .custom-rate-wrap { margin-top: .7rem; display: none; }
+  .custom-rate-wrap.show { display: block; }
+
+  /* ── Status box ── */
+  #status-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: .7rem; padding: .7rem 1rem;
+    font-size: .82rem; color: var(--muted);
+    margin-top: .8rem; display: none;
+    line-height: 1.5;
+  }
+  #status-box.show { display: block; }
+  #status-box.info  { border-color: var(--gold);  color: var(--gold); }
+  #status-box.ok    { border-color: var(--green); color: var(--green); }
+  #status-box.error { border-color: var(--danger); color: var(--danger); }
+
+  /* ── Spray button ── */
+  #spray-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, #FF9500 100%);
+    color: #0A0A10; border: none; border-radius: 1rem;
+    padding: 1.1rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.35rem; font-weight: 800;
+    cursor: pointer; letter-spacing: -.01em;
+    transition: transform .12s, box-shadow .12s, opacity .2s;
+    box-shadow: 0 4px 32px rgba(245,200,66,.28);
+    margin-top: 1.2rem;
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    opacity: .4; pointer-events: none;
+  }
+  #spray-btn.ready { opacity: 1; pointer-events: auto; animation: pulse-glow 2.4s ease-in-out infinite; }
+  #spray-btn.spraying {
+    background: linear-gradient(135deg, var(--danger) 0%, #C9001A 100%);
+    box-shadow: 0 4px 32px rgba(255,77,109,.35);
+    animation: none;
+  }
+  #spray-btn.loading { opacity: .6; pointer-events: none; animation: none; }
+  #spray-btn:active { transform: scale(.97); }
+  @keyframes pulse-glow {
+    0%,100% { box-shadow: 0 4px 32px rgba(245,200,66,.28); }
+    50%      { box-shadow: 0 4px 56px rgba(245,200,66,.55); }
+  }
+
+  .hint { font-size: .8rem; color: var(--muted); text-align: center; margin-top: .6rem; }
+
+  /* ── Live counter ── */
+  #live-counter { display: none; text-align: center; margin-top: 1.4rem; }
+  #live-counter.show { display: block; }
+  #counter-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 3rem; font-weight: 800; color: var(--gold); line-height: 1;
+  }
+  #counter-label { font-size: .85rem; color: var(--muted); margin-top: .2rem; }
+  #counter-name { color: var(--text); font-weight: 600; }
+
+  /* ── Tx log ── */
+  #tx-log {
+    margin-top: .8rem; font-size: .75rem; color: var(--muted);
+    max-height: 80px; overflow-y: auto; display: none;
+  }
+  #tx-log.show { display: block; }
+  #tx-log a { color: var(--gold); text-decoration: none; }
+  #tx-log a:hover { text-decoration: underline; }
+  .tx-line { margin-bottom: .25rem; }
+
+  /* ── Receipt ── */
+  #receipt {
+    display: none;
+    background: linear-gradient(135deg, #0E2516 0%, #0A1A10 100%);
+    border: 1px solid var(--green); border-radius: 1.2rem;
+    padding: 1.6rem; margin-top: 1.2rem; text-align: center;
+  }
+  #receipt.show { display: block; animation: slide-up .4s ease; }
+  #receipt-icon { font-size: 2.8rem; margin-bottom: .5rem; }
+  #receipt-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem; font-weight: 800; color: var(--green); margin-bottom: .3rem;
+  }
+  #receipt-total {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem; font-weight: 800; color: var(--text); margin: .7rem 0 .3rem;
+  }
+  #receipt-msg { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+  #receipt-addr { font-size: .75rem; color: var(--muted); word-break: break-all; margin-top: .5rem; }
+  #receipt-txhash { font-size: .72rem; margin-top: .5rem; }
+  #receipt-txhash a { color: var(--gold); text-decoration: none; }
+  .spray-again-btn {
+    margin-top: 1.2rem;
+    background: transparent; border: 1px solid var(--border);
+    border-radius: .6rem; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .9rem; font-weight: 600;
+    padding: .65rem 1.4rem; cursor: pointer; transition: border-color .2s;
+  }
+  .spray-again-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── Canvas ── */
+  #spray-canvas {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 200; display: none;
+  }
+  #spray-canvas.active { display: block; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--surface); border: 1px solid var(--green);
+    border-radius: 1rem; padding: .9rem 1.4rem;
+    font-size: .9rem; font-weight: 600; color: var(--green);
+    z-index: 999;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap; max-width: 90vw; text-align: center;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Connect overlay ── */
+  #connect-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,10,16,.88);
+    backdrop-filter: blur(8px);
+    z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .3s;
+  }
+  #connect-overlay.hidden { opacity: 0; pointer-events: none; }
+  .connect-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 1.4rem; padding: 2.4rem 2rem;
+    text-align: center; max-width: 340px; width: 90%;
+  }
+  .connect-box h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem; font-weight: 800; margin-bottom: .5rem;
+  }
+  .connect-box p { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+  .connect-big-btn {
+    margin-top: 1.5rem; width: 100%;
+    background: var(--gold); color: #0A0A10;
+    border: none; border-radius: .8rem; padding: .9rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 800; cursor: pointer;
+    transition: background .2s;
+  }
+  .connect-big-btn:hover { background: var(--gold-deep); }
+
+  @keyframes slide-up {
+    from { opacity:0; transform: translateY(16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Connect overlay -->
+<div id="connect-overlay">
+  <div class="connect-box">
+    <div style="font-size:2.8rem;margin-bottom:.6rem">💸</div>
+    <h2>Connect to Spray</h2>
+    <p>Connect your MetaMask wallet to start spraying money at the celebrant.</p>
+    <button class="connect-big-btn" onclick="connectWallet()">Connect MetaMask</button>
+    <p style="margin-top:1rem;font-size:.75rem;color:var(--muted)">Celo Mainnet · Botchain (677)</p>
+  </div>
+</div>
+
+<!-- Spray canvas -->
+<canvas id="spray-canvas"></canvas>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Header -->
+<header>
+  <div class="logo">Spray<span>Chain</span></div>
+  <div style="display:flex;align-items:center;gap:.8rem">
+    <div class="chain-badge" id="chain-badge">
+      <div class="chain-dot"></div>
+      <span id="chain-name">Celo</span>
+    </div>
+    <button id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+</header>
+
+<main>
+  <div class="eyebrow">Web3 Celebration Protocol</div>
+  <h1>Spray the<br/>Celebrant 🎉</h1>
+  <p class="subtitle">Honor someone with crypto. Set your spray rate, aim, and let it rain — 100% reaches them on-chain.</p>
+
+  <div class="card">
+    <div class="card-title">Who are you spraying?</div>
+
+    <label>Celebrant's Name</label>
+    <input type="text" id="honoree-name" placeholder="e.g. Queen Bimpe" oninput="checkFormReady()"/>
+
+    <label>Wallet Address</label>
+    <input type="text" id="honoree-addr" placeholder="0x..." oninput="checkFormReady()"/>
+
+    <label style="margin-top:1.2rem">Spray Rate</label>
+    <div class="rate-group">
+      <div class="rate-pill" data-rate="0.10" onclick="selectRate(this)">$0.10/s</div>
+      <div class="rate-pill active" data-rate="0.50" onclick="selectRate(this)">$0.50/s</div>
+      <div class="rate-pill" data-rate="1.00" onclick="selectRate(this)">$1.00/s</div>
+      <div class="rate-pill" data-rate="custom" onclick="selectRate(this)">Custom</div>
+    </div>
+    <div class="custom-rate-wrap" id="custom-rate-wrap">
+      <label>Custom amount (USD / second)</label>
+      <input type="number" id="custom-rate-input" placeholder="e.g. 2.50" min="0.01" step="0.01" oninput="updateCustomRate()"/>
+    </div>
+
+    <div id="status-box"></div>
+  </div>
+
+  <button id="spray-btn" onclick="toggleSpray()">
+    <span id="spray-btn-icon">💸</span>
+    <span id="spray-btn-text">SPRAY!</span>
+  </button>
+  <p class="hint" id="btn-hint">Fill in the details above to enable spraying</p>
+
+  <!-- Live counter -->
+  <div id="live-counter">
+    <div id="counter-amount">$0.00</div>
+    <div id="counter-label">sprayed at <span id="counter-name"></span></div>
+  </div>
+
+  <!-- Tx log -->
+  <div id="tx-log"></div>
+
+  <!-- Receipt -->
+  <div id="receipt">
+    <div id="receipt-icon">✅</div>
+    <div id="receipt-title">Spray Complete!</div>
+    <div id="receipt-total"></div>
+    <div id="receipt-msg"></div>
+    <div id="receipt-addr"></div>
+    <div id="receipt-txhash"></div>
+    <button class="spray-again-btn" onclick="resetForm()">Spray Again →</button>
+  </div>
+</main>
+
+<script>
+// ─── Contract config ────────────────────────────────────────────────
+const CONTRACT_ADDRESS = '0xE35a918282A25755D79f7f9980cc6D5B590bbE63';
+
+const ABI = [
+  {
+    "inputs": [{"internalType":"bytes32","name":"sessionId","type":"bytes32"}],
+    "name": "addSpray", "outputs": [],
+    "stateMutability": "payable", "type": "function"
+  },
+  {
+    "inputs": [{"internalType":"bytes32","name":"sessionId","type":"bytes32"}],
+    "name": "closeSpray", "outputs": [],
+    "stateMutability": "nonpayable", "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType":"address","name":"honoree","type":"address"},
+      {"internalType":"string","name":"honoreeTag","type":"string"}
+    ],
+    "name": "openSpray",
+    "outputs": [{"internalType":"bytes32","name":"sessionId","type":"bytes32"}],
+    "stateMutability": "payable", "type": "function"
+  },
+  {
+    "inputs": [{"internalType":"bytes32","name":"sessionId","type":"bytes32"}],
+    "name": "getSession",
+    "outputs": [{
+      "components": [
+        {"internalType":"address","name":"sprayer","type":"address"},
+        {"internalType":"address","name":"honoree","type":"address"},
+        {"internalType":"string","name":"honoreeTag","type":"string"},
+        {"internalType":"uint256","name":"total","type":"uint256"},
+        {"internalType":"uint8","name":"status","type":"uint8"},
+        {"internalType":"uint256","name":"openedAt","type":"uint256"},
+        {"internalType":"uint256","name":"closedAt","type":"uint256"}
+      ],
+      "internalType":"struct SprayMachine.Session","name":"","type":"tuple"
+    }],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [{"internalType":"address","name":"sprayer","type":"address"}],
+    "name": "getSprayerHistory",
+    "outputs": [{"internalType":"bytes32[]","name":"","type":"bytes32[]"}],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [{"internalType":"address","name":"honoree","type":"address"}],
+    "name": "getHonoreeHistory",
+    "outputs": [{"internalType":"bytes32[]","name":"","type":"bytes32[]"}],
+    "stateMutability": "view", "type": "function"
+  },
+  // Events
+  {
+    "anonymous":false,
+    "inputs":[
+      {"indexed":true,"internalType":"bytes32","name":"sessionId","type":"bytes32"},
+      {"indexed":true,"internalType":"address","name":"sprayer","type":"address"},
+      {"indexed":true,"internalType":"address","name":"honoree","type":"address"},
+      {"indexed":false,"internalType":"uint256","name":"totalAmount","type":"uint256"},
+      {"indexed":false,"internalType":"string","name":"honoreeTag","type":"string"}
+    ],
+    "name":"SprayClosed","type":"event"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {"indexed":true,"internalType":"bytes32","name":"sessionId","type":"bytes32"},
+      {"indexed":true,"internalType":"address","name":"sprayer","type":"address"},
+      {"indexed":true,"internalType":"address","name":"honoree","type":"address"},
+      {"indexed":false,"internalType":"string","name":"honoreeTag","type":"string"},
+      {"indexed":false,"internalType":"uint256","name":"initialAmount","type":"uint256"}
+    ],
+    "name":"SprayOpened","type":"event"
+  },
+  {
+    "anonymous":false,
+    "inputs":[
+      {"indexed":true,"internalType":"bytes32","name":"sessionId","type":"bytes32"},
+      {"indexed":false,"internalType":"uint256","name":"tickAmount","type":"uint256"},
+      {"indexed":false,"internalType":"uint256","name":"cumulative","type":"uint256"}
+    ],
+    "name":"SprayTick","type":"event"
+  }
+];
+
+// Explorer base URLs by chain ID
+const EXPLORERS = {
+  42220: 'https://celoscan.io/tx/',
+  44787: 'https://alfajores.celoscan.io/tx/',
+  677:   'https://botchain.toffeeshare.com/tx/',
+};
+
+// CELO price fallback (USD). Ideally fetch live; here we seed a reasonable default.
+let CELO_USD_PRICE = 0.65;
+
+// ─── State ──────────────────────────────────────────
+let provider, signer, contract;
+let walletConnected = false;
+let walletAddress   = '';
+let chainId         = 0;
+
+let spraying        = false;
+let sprayRate       = 0.50;        // USD/second
+let sprayTotal      = 0;           // USD accumulated
+let sessionId       = null;        // bytes32 from contract
+let tickInterval    = null;
+let pendingTick     = false;       // prevent overlapping txns
+let tickBatch       = [];          // batch wei accumulator
+let lastBatchTime   = 0;
+const TICK_MS       = 500;         // animation tick
+const BATCH_MS      = 2000;        // send tx every 2s
+
+// Canvas
+let canvas, ctx, particles = [];
+const EMOJIS = ['💵','💴','💶','💷','💸','🤑','💰','✨','🌟'];
+
+// ─── Wallet ─────────────────────────────────────────
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    showToast('MetaMask not found — install it first', 'error');
+    window.open('https://metamask.io/download/', '_blank');
+    return;
+  }
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send('eth_requestAccounts', []);
+    signer   = await provider.getSigner();
+    walletAddress = await signer.getAddress();
+    const network = await provider.getNetwork();
+    chainId = Number(network.chainId);
+
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    walletConnected = true;
+    onWalletConnected();
+  } catch (e) {
+    showToast('Wallet connection rejected', 'error');
+  }
+}
+
+function onWalletConnected() {
+  document.getElementById('connect-overlay').classList.add('hidden');
+
+  const btn = document.getElementById('wallet-btn');
+  btn.textContent = shortenAddr(walletAddress);
+  btn.classList.add('connected');
+
+  const badge = document.getElementById('chain-badge');
+  badge.classList.add('show');
+  const names = { 42220: 'Celo', 44787: 'Celo Alfajores', 677: 'Botchain' };
+  document.getElementById('chain-name').textContent = names[chainId] || `Chain ${chainId}`;
+
+  fetchCeloPrice();
+  checkFormReady();
+  showToast('🟢 Wallet connected — ready to spray!');
+}
+
+async function fetchCeloPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=celo&vs_currencies=usd');
+    const d = await r.json();
+    if (d?.celo?.usd) CELO_USD_PRICE = d.celo.usd;
+  } catch {}
+}
+
+// ─── Helpers ────────────────────────────────────────
+function shortenAddr(a) { return a.slice(0,6) + '…' + a.slice(-4); }
+
+function explorerUrl(hash) {
+  const base = EXPLORERS[chainId] || 'https://celoscan.io/tx/';
+  return base + hash;
+}
+
+function usdToWei(usd) {
+  // Convert USD → CELO → wei
+  const celo = usd / CELO_USD_PRICE;
+  return ethers.parseEther(celo.toFixed(18));
+}
+
+function weiToUsd(wei) {
+  const celo = parseFloat(ethers.formatEther(wei));
+  return celo * CELO_USD_PRICE;
+}
+
+function setStatus(msg, type = '') {
+  const box = document.getElementById('status-box');
+  box.textContent = msg;
+  box.className = 'show ' + type;
+}
+
+function clearStatus() {
+  const box = document.getElementById('status-box');
+  box.className = '';
+}
+
+// ─── Form ────────────────────────────────────────────
+function checkFormReady() {
+  const name = document.getElementById('honoree-name').value.trim();
+  const addr = document.getElementById('honoree-addr').value.trim();
+  const addrOk = /^0x[0-9a-fA-F]{40}$/.test(addr);
+  const btn  = document.getElementById('spray-btn');
+  const hint = document.getElementById('btn-hint');
+
+  clearStatus();
+
+  if (!walletConnected) {
+    btn.classList.remove('ready');
+    hint.textContent = 'Connect your wallet to spray';
+    return;
+  }
+  if (!name) {
+    btn.classList.remove('ready');
+    hint.textContent = "Enter the celebrant's name";
+    return;
+  }
+  if (!addr) {
+    btn.classList.remove('ready');
+    hint.textContent = 'Enter the wallet address';
+    return;
+  }
+  if (!addrOk) {
+    btn.classList.remove('ready');
+    hint.textContent = 'Invalid wallet address';
+    document.getElementById('honoree-addr').classList.add('error');
+    return;
+  }
+  if (addr.toLowerCase() === walletAddress.toLowerCase()) {
+    btn.classList.remove('ready');
+    setStatus('You cannot spray yourself!', 'error');
+    return;
+  }
+  document.getElementById('honoree-addr').classList.remove('error');
+  btn.classList.add('ready');
+  hint.textContent = '';
+}
+
+function selectRate(el) {
+  document.querySelectorAll('.rate-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const wrap = document.getElementById('custom-rate-wrap');
+  if (el.dataset.rate === 'custom') {
+    wrap.classList.add('show');
+  } else {
+    wrap.classList.remove('show');
+    sprayRate = parseFloat(el.dataset.rate);
+  }
+}
+
+function updateCustomRate() {
+  const v = parseFloat(document.getElementById('custom-rate-input').value);
+  if (!isNaN(v) && v > 0) sprayRate = v;
+}
+
+// ─── Spray ──────────────────────────────────────────
+async function toggleSpray() {
+  if (!spraying) await startSpray();
+  else           await stopSpray();
+}
+
+async function startSpray() {
+  const name = document.getElementById('honoree-name').value.trim();
+  const addr = document.getElementById('honoree-addr').value.trim();
+
+  // First tick value = 0.5s of spray
+  const firstTickUsd = sprayRate * (TICK_MS / 1000);
+  const firstTickWei = usdToWei(firstTickUsd);
+
+  setBtnLoading('Opening session…');
+  setStatus('⏳ Waiting for wallet confirmation…', 'info');
+
+  try {
+    const tx = await contract.openSpray(addr, name, { value: firstTickWei });
+    setStatus('⛓ Transaction sent — confirming…', 'info');
+    addTxLog(tx.hash, 'Open session');
+
+    const receipt = await tx.wait();
+
+    // Extract sessionId from SprayOpened event
+    const iface = new ethers.Interface(ABI);
+    let sid = null;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed && parsed.name === 'SprayOpened') {
+          sid = parsed.args.sessionId;
+          break;
+        }
+      } catch {}
+    }
+    if (!sid) throw new Error('Could not find session ID in receipt');
+
+    sessionId  = sid;
+    sprayTotal = firstTickUsd;
+    spraying   = true;
+    lastBatchTime = Date.now();
+    tickBatch  = [];
+
+    clearStatus();
+    setBtnSpraying();
+    showLiveCounter(name);
+    updateCounter();
+    initCanvas();
+    document.getElementById('spray-canvas').classList.add('active');
+
+    showToast(`🎉 Spraying ${name}!`);
+
+    // Start animation + batch accumulator
+    tickInterval = setInterval(onTick, TICK_MS);
+
+  } catch (e) {
+    clearStatus();
+    setBtnReady();
+    const msg = e?.reason || e?.message || 'Transaction failed';
+    setStatus('❌ ' + msg.slice(0, 120), 'error');
+    showToast('Transaction failed', 'error');
+  }
+}
+
+async function onTick() {
+  if (!spraying) return;
+
+  const tickUsd = sprayRate * (TICK_MS / 1000);
+  sprayTotal += tickUsd;
+  tickBatch.push(tickUsd);
+  updateCounter();
+  spawnDollars(10 + Math.floor(sprayRate * 4));
+
+  // Send batched tx every BATCH_MS
+  const now = Date.now();
+  if (!pendingTick && (now - lastBatchTime) >= BATCH_MS && tickBatch.length > 0) {
+    const batchUsd = tickBatch.reduce((a,b) => a+b, 0);
+    tickBatch = [];
+    lastBatchTime = now;
+    pendingTick = true;
+    try {
+      const tx = await contract.addSpray(sessionId, { value: usdToWei(batchUsd) });
+      addTxLog(tx.hash, `+$${batchUsd.toFixed(2)}`);
+      // Don't await — fire and continue spraying
+      tx.wait().catch(() => {});
+    } catch (e) {
+      console.warn('addSpray tick failed:', e?.message);
+    }
+    pendingTick = false;
+  }
+}
+
+async function stopSpray() {
+  clearInterval(tickInterval);
+  spraying = false;
+  pendingTick = false;
+
+  // Flush any remaining batch
+  const remainingUsd = tickBatch.reduce((a,b) => a+b, 0);
+  tickBatch = [];
+
+  setBtnLoading('Closing session…');
+  setStatus('⏳ Sending close transaction…', 'info');
+
+  const name = document.getElementById('honoree-name').value.trim();
+  const addr = document.getElementById('honoree-addr').value.trim();
+
+  // Stop canvas
+  setTimeout(() => {
+    document.getElementById('spray-canvas').classList.remove('active');
+    particles = [];
+  }, 1800);
+
+  document.getElementById('live-counter').classList.remove('show');
+  document.getElementById('tx-log').classList.remove('show');
+
+  try {
+    // If there's a remaining batch to flush, send addSpray first
+    if (remainingUsd > 0.001) {
+      const flushTx = await contract.addSpray(sessionId, { value: usdToWei(remainingUsd) });
+      await flushTx.wait();
+    }
+
+    const tx = await contract.closeSpray(sessionId);
+    setStatus('⛓ Close transaction sent — confirming…', 'info');
+    const receipt = await tx.wait();
+
+    // Read final total from SprayClosed event
+    const iface = new ethers.Interface(ABI);
+    let finalWei = null;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed && parsed.name === 'SprayClosed') {
+          finalWei = parsed.args.totalAmount;
+          break;
+        }
+      } catch {}
+    }
+
+    const finalUsd = finalWei ? weiToUsd(finalWei) : sprayTotal;
+    clearStatus();
+    showReceipt(name, addr, finalUsd, tx.hash);
+    showToast(`🎉 $${finalUsd.toFixed(2)} sprayed at ${name}!`);
+
+  } catch (e) {
+    clearStatus();
+    const msg = e?.reason || e?.message || 'Close failed';
+    setStatus('❌ ' + msg.slice(0, 120), 'error');
+    showToast('Close transaction failed', 'error');
+  }
+
+  setBtnReady();
+  sessionId = null;
+}
+
+// ─── Button states ───────────────────────────────────
+function setBtnLoading(label = 'Processing…') {
+  const btn = document.getElementById('spray-btn');
+  btn.className = 'loading';
+  document.getElementById('spray-btn-icon').textContent = '⏳';
+  document.getElementById('spray-btn-text').textContent = label;
+}
+function setBtnSpraying() {
+  const btn = document.getElementById('spray-btn');
+  btn.className = 'ready spraying';
+  document.getElementById('spray-btn-icon').textContent = '🛑';
+  document.getElementById('spray-btn-text').textContent = 'STOP SPRAYING';
+}
+function setBtnReady() {
+  const btn = document.getElementById('spray-btn');
+  btn.className = 'ready';
+  document.getElementById('spray-btn-icon').textContent = '💸';
+  document.getElementById('spray-btn-text').textContent = 'SPRAY!';
+}
+
+// ─── UI helpers ──────────────────────────────────────
+function showLiveCounter(name) {
+  document.getElementById('counter-name').textContent = name;
+  document.getElementById('live-counter').classList.add('show');
+  document.getElementById('tx-log').classList.add('show');
+}
+function updateCounter() {
+  document.getElementById('counter-amount').textContent = '$' + sprayTotal.toFixed(2);
+}
+
+function addTxLog(hash, label) {
+  const log = document.getElementById('tx-log');
+  const url = explorerUrl(hash);
+  const line = document.createElement('div');
+  line.className = 'tx-line';
+  line.innerHTML = `${label} → <a href="${url}" target="_blank">${hash.slice(0,10)}…</a>`;
+  log.prepend(line);
+}
+
+function showReceipt(name, addr, total, txHash) {
+  document.getElementById('receipt-total').textContent = '$' + total.toFixed(2);
+  document.getElementById('receipt-msg').innerHTML =
+    `<strong style="color:var(--text)">${shortenAddr(walletAddress)}</strong> sprayed <strong style="color:var(--gold)">${name}</strong>`;
+  document.getElementById('receipt-addr').textContent = 'Sent to: ' + addr;
+  document.getElementById('receipt-txhash').innerHTML =
+    `<a href="${explorerUrl(txHash)}" target="_blank">View on explorer ↗</a>`;
+  document.getElementById('receipt').classList.add('show');
+}
+
+function resetForm() {
+  document.getElementById('receipt').classList.remove('show');
+  document.getElementById('honoree-name').value = '';
+  document.getElementById('honoree-addr').value = '';
+  document.getElementById('tx-log').innerHTML = '';
+  sprayTotal = 0;
+  sessionId  = null;
+  checkFormReady();
+}
+
+// ─── Canvas particles ────────────────────────────────
+function initCanvas() {
+  canvas = document.getElementById('spray-canvas');
+  ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  particles = [];
+  requestAnimationFrame(animateCanvas);
+}
+
+function spawnDollars(count) {
+  const cx = canvas.width / 2;
+  const cy = canvas.height * 0.55;
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.random() * 240 - 120) * Math.PI / 180;
+    const speed = 4 + Math.random() * 9;
+    particles.push({
+      x: cx + (Math.random() - .5) * 80,
+      y: cy,
+      vx: Math.sin(angle) * speed,
+      vy: -Math.abs(Math.cos(angle)) * speed - 3,
+      emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+      size: 1.2 + Math.random() * 1.6,
+      alpha: 1, rot: Math.random() * 360,
+      rotV: (Math.random() - .5) * 9,
+      life: 1, decay: 0.011 + Math.random() * 0.009
+    });
+  }
+}
+
+function animateCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.32; p.vx *= 0.99;
+    p.rot += p.rotV;
+    p.life -= p.decay;
+    p.alpha = Math.max(0, p.life);
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.save();
+    ctx.globalAlpha = p.alpha;
+    ctx.font = `${p.size}rem serif`;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot * Math.PI / 180);
+    ctx.fillText(p.emoji, -16, 16);
+    ctx.restore();
+  }
+  requestAnimationFrame(animateCanvas);
+}
+
+window.addEventListener('resize', () => {
+  if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+});
+
+// ─── Toast ───────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = type === 'error' ? 'var(--danger)' : 'var(--green)';
+  t.style.borderColor = type === 'error' ? 'var(--danger)' : 'var(--green)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─── Auto-connect ────────────────────────────────────
+window.addEventListener('load', async () => {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send('eth_accounts', []);
+      if (accounts.length > 0) {
+        signer = await provider.getSigner();
+        walletAddress = await signer.getAddress();
+        const network = await provider.getNetwork();
+        chainId = Number(network.chainId);
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        walletConnected = true;
+        onWalletConnected();
+      }
+    } catch {}
+  }
+
+  // Listen for account/chain changes
+  if (window.ethereum) {
+    window.ethereum.on('accountsChanged', () => location.reload());
+    window.ethereum.on('chainChanged',    () => location.reload());
+  }
+});
+</script>
+</body>
+</html>
