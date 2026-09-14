@@ -364,8 +364,8 @@
 // ═══════════════════════════════════════════════════
 const USDT_ADDRESS = '0x75edC9335175Fc0552D51D48439F229c10420fe3';
 
-const EXPLORERS = { 968: 'https://scan.bohr.life/tx/' };
-const CHAIN_NAMES = { 968: 'Botchain' };
+const EXPLORERS = { 677: 'https://scan.botchain.ai/tx/' };
+const CHAIN_NAMES = { 677: 'Botchain' };
 
 const ERC20_ABI = [
   'function transfer(address to, uint256 amount) returns (bool)',
@@ -607,7 +607,7 @@ function showReceipt(name, addr, total, txHash) {
   document.getElementById('receipt-msg').innerHTML =
     `<strong style="color:var(--text)">${shortenAddr(walletAddress)}</strong> sprayed <strong style="color:var(--gold)">${name}</strong>`;
   document.getElementById('receipt-addr').textContent = 'Sent to: ' + addr;
-  const explorer = EXPLORERS[chainId] || 'https://scan.bohr.life/tx/';
+  const explorer = EXPLORERS[chainId] || 'https://scan.botchain.ai/tx/';
   document.getElementById('receipt-tx').innerHTML =
     `<a href="${explorer + txHash}" target="_blank">View transaction ↗</a>`;
   document.getElementById('receipt-overlay').classList.add('show');
