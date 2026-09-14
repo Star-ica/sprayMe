@@ -20,7 +20,7 @@
     --text:     #F0EDE6;
     --muted:    #7A7A8A;
     --danger:   #FF4D6D;
-    --usdt:     #26A17B;
+    --bot:      #7B61FF;
   }
 
   html, body { height: 100%; }
@@ -75,10 +75,10 @@
   #balance-pill {
     display: none;
     align-items: center; gap: .4rem;
-    background: rgba(38,161,123,.12);
-    border: 1px solid rgba(38,161,123,.35);
+    background: rgba(123,97,255,.12);
+    border: 1px solid rgba(123,97,255,.35);
     border-radius: 999px; padding: .28rem .85rem;
-    font-size: .78rem; font-weight: 600; color: var(--usdt);
+    font-size: .78rem; font-weight: 600; color: var(--bot);
   }
   #balance-pill.show { display: inline-flex; }
 
@@ -180,7 +180,7 @@
   }
   .counter-unit {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1rem; color: var(--usdt); font-weight: 600; margin-left: .15rem;
+    font-size: 1rem; color: var(--bot); font-weight: 600; margin-left: .15rem;
   }
   #counter-label { font-size: .82rem; color: var(--muted); margin-top: .25rem; }
   #counter-name  { color: var(--text); font-weight: 600; }
@@ -215,7 +215,7 @@
   #receipt-icon { font-size: 3rem; margin-bottom: .6rem; }
   #receipt-title { font-family:'Syne',sans-serif; font-size:1.5rem;font-weight:800;color:var(--green);margin-bottom:.25rem; }
   #receipt-amount { font-family:'Syne',sans-serif; font-size:2.6rem;font-weight:800;color:var(--text);margin:.6rem 0 .2rem; }
-  #receipt-usdt { font-size:.8rem;color:var(--usdt);font-weight:600;margin-bottom:.5rem; }
+  #receipt-bot { font-size:.8rem;color:var(--bot);font-weight:600;margin-bottom:.5rem; }
   #receipt-msg  { color:var(--muted);font-size:.88rem;line-height:1.6; }
   #receipt-addr { font-size:.72rem;color:var(--muted);word-break:break-all;margin-top:.45rem; }
   #receipt-tx   { font-size:.72rem;margin-top:.5rem; }
@@ -267,8 +267,6 @@
     cursor:pointer;transition:background .2s;
   }
   .connect-big:hover { background:var(--gold-d); }
-
-  @keyframes up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
@@ -277,9 +275,9 @@
   <div class="connect-box">
     <div style="font-size:2.6rem;margin-bottom:.55rem">💸</div>
     <h2>Connect to Spray</h2>
-    <p>Connect your MetaMask wallet to spray USDT at the celebrant.</p>
+    <p>Connect your MetaMask wallet to spray BOT at the celebrant.</p>
     <button class="connect-big" onclick="connectWallet()">Connect MetaMask</button>
-    <p style="margin-top:.9rem;font-size:.72rem;color:var(--muted)">Botchain</p>
+    <p style="margin-top:.9rem;font-size:.72rem;color:var(--muted)">Botchain · Minimum 0.01 BOT</p>
   </div>
 </div>
 
@@ -294,8 +292,8 @@
       <span id="chain-name">—</span>
     </div>
     <div id="balance-pill">
-      <span style="color:var(--usdt);font-size:.9rem">₮</span>
-      <span id="balance-val">0.00</span> USDT
+      <span style="font-size:.9rem">⬡</span>
+      <span id="balance-val">0.0000</span> BOT
     </div>
     <button id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
   </div>
@@ -304,7 +302,7 @@
 <main>
   <div class="eyebrow">Web3 Celebration Protocol</div>
   <h1>Spray the<br/>Celebrant 🎉</h1>
-  <p class="subtitle">Spray USDT at the celebrant in real time — the full total is sent on-chain when you stop.</p>
+  <p class="subtitle">Run the counter, stop when you're done — the full BOT total is sent on-chain via SprayMachine in a single transaction.</p>
 
   <div class="card">
     <div class="card-title">Who are you spraying?</div>
@@ -317,15 +315,15 @@
 
     <label>Spray Rate</label>
     <div class="rate-group">
-      <div class="rate-pill" data-rate="0.10" onclick="selectRate(this)">$0.10/s</div>
-      <div class="rate-pill active" data-rate="0.50" onclick="selectRate(this)">$0.50/s</div>
-      <div class="rate-pill" data-rate="1.00" onclick="selectRate(this)">$1.00/s</div>
-      <div class="rate-pill" data-rate="2.00" onclick="selectRate(this)">$2.00/s</div>
+      <div class="rate-pill" data-rate="0.01" onclick="selectRate(this)">0.01/s</div>
+      <div class="rate-pill active" data-rate="0.05" onclick="selectRate(this)">0.05/s</div>
+      <div class="rate-pill" data-rate="0.10" onclick="selectRate(this)">0.10/s</div>
+      <div class="rate-pill" data-rate="0.50" onclick="selectRate(this)">0.50/s</div>
       <div class="rate-pill" data-rate="custom" onclick="selectRate(this)">Custom</div>
     </div>
     <div class="custom-wrap" id="custom-wrap">
-      <label>Custom rate (USDT / second)</label>
-      <input type="number" id="custom-input" placeholder="e.g. 5.00" min="0.01" step="0.01" oninput="updateCustom()"/>
+      <label>Custom rate (BOT / second)</label>
+      <input type="number" id="custom-input" placeholder="e.g. 1.00" min="0.001" step="0.001" oninput="updateCustom()"/>
     </div>
 
     <div class="status-box" id="status-box"></div>
@@ -338,7 +336,7 @@
   <p class="hint" id="btn-hint">Fill in the details above to enable spraying</p>
 
   <div id="live-counter">
-    <div id="counter-amount">0.00<span class="counter-unit">USDT</span></div>
+    <div id="counter-amount">0.0000<span class="counter-unit">BOT</span></div>
     <div id="counter-label">sprayed at <span id="counter-name"></span></div>
     <div id="counter-rate"></div>
   </div>
@@ -349,7 +347,7 @@
       <div id="receipt-icon">✅</div>
       <div id="receipt-title">Spray Complete!</div>
       <div id="receipt-amount"></div>
-      <div id="receipt-usdt">USDT sent on-chain</div>
+      <div id="receipt-bot">BOT sent on-chain via SprayMachine</div>
       <div id="receipt-msg"></div>
       <div id="receipt-addr"></div>
       <div id="receipt-tx"></div>
@@ -360,33 +358,40 @@
 
 <script>
 // ═══════════════════════════════════════════════════
-//  CONFIG
+//  CONFIG  —  set your deployed SprayMachine address
 // ═══════════════════════════════════════════════════
-const USDT_ADDRESS = '0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C';
+const SPRAY_MACHINE_ADDRESS = '0x0000000000000000000000000000000000000000'; // ← replace
 
-const EXPLORERS = { 677: 'https://scan.botchain.ai/tx/' };
-const CHAIN_NAMES = { 677: 'Botchain' };
+const BOTCHAIN_ID   = 677;
+const EXPLORERS     = { [BOTCHAIN_ID]: 'https://scan.botchain.ai/tx/' };
+const CHAIN_NAMES   = { [BOTCHAIN_ID]: 'Botchain' };
+const MIN_BOT       = 0.01; // minimum BOT to send in a spray session
 
-const ERC20_ABI = [
-  'function transfer(address to, uint256 amount) returns (bool)',
-  'function balanceOf(address account) view returns (uint256)',
+const SPRAY_MACHINE_ABI = [
+  'function openSpray(address honoree, string calldata honoreeTag) external payable returns (bytes32)',
+  'function closeSpray(bytes32 sessionId) external',
+  'function getSession(bytes32 sessionId) external view returns (tuple(address sprayer, address honoree, string honoreeTag, uint256 total, uint8 status, uint256 openedAt, uint256 closedAt))',
+  'event SprayOpened(bytes32 indexed sessionId, address indexed sprayer, address indexed honoree, string honoreeTag, uint256 initialAmount)',
+  'event SprayClosed(bytes32 indexed sessionId, address indexed sprayer, address indexed honoree, uint256 totalAmount, string honoreeTag)',
 ];
 
 // ═══════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════
-let provider, signer, usdtContract;
+let provider, signer, sprayContract;
 let walletConnected = false;
 let walletAddress   = '';
 let chainId         = 0;
-const usdtDecimals  = 6; // USDT is always 6 — never fetched from chain
-let usdtBalance     = 0n;
+let botBalance      = 0n; // in wei
 
-let spraying     = false;
-let sprayRate    = 0.50;
-let sprayTotal   = 0;
-let tickInterval = null;
-const TICK_MS    = 100;
+let spraying        = false;
+let sprayRate       = 0.05;  // BOT per second
+let sprayTotal      = 0;     // BOT accumulated (UI counter only)
+let tickInterval    = null;
+let activeSessionId = null;  // bytes32 from openSpray event
+let sessionName     = '';
+let sessionAddr     = '';
+const TICK_MS       = 200;   // UI refresh rate — no on-chain calls during spray
 
 let canvas, ctx, particles = [];
 const EMOJIS = ['💵','💴','💶','💷','💸','🤑','💰','✨','🌟','💎'];
@@ -401,13 +406,13 @@ async function connectWallet() {
     return;
   }
   try {
-    provider = new ethers.BrowserProvider(window.ethereum);
+    provider      = new ethers.BrowserProvider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
     signer        = await provider.getSigner();
     walletAddress = await signer.getAddress();
     const net     = await provider.getNetwork();
     chainId       = Number(net.chainId);
-    usdtContract  = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
+    sprayContract = new ethers.Contract(SPRAY_MACHINE_ADDRESS, SPRAY_MACHINE_ABI, signer);
     await refreshBalance();
     walletConnected = true;
     onConnected();
@@ -418,10 +423,10 @@ async function connectWallet() {
 
 async function refreshBalance() {
   try {
-    usdtBalance = await usdtContract.balanceOf(walletAddress);
-    const fmt   = parseFloat(ethers.formatUnits(usdtBalance, usdtDecimals));
+    botBalance = await provider.getBalance(walletAddress);
+    const fmt  = parseFloat(ethers.formatEther(botBalance));
     document.getElementById('balance-val').textContent =
-      fmt.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      fmt.toLocaleString('en', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
     document.getElementById('balance-pill').classList.add('show');
   } catch {}
 }
@@ -448,8 +453,8 @@ function checkReady() {
   const btn    = document.getElementById('spray-btn');
   const hint   = document.getElementById('btn-hint');
 
-  // Don't touch the button while actively spraying or loading
-  if (spraying || btn.className === 'loading') return;
+  if (spraying) return;
+  if (btn.classList.contains('loading')) return;
 
   clearStatus();
   document.getElementById('honoree-addr').classList.remove('error-field');
@@ -472,15 +477,13 @@ function checkReady() {
     setStatus('You cannot spray yourself!', 'error'); return;
   }
 
-  hint.textContent = '';
+  hint.textContent = `Minimum spray: ${MIN_BOT} BOT`;
   btn.className = 'ready';
 }
 
-// ── Rate selection — works before, during, and after spraying ──
 function selectRate(el) {
   document.querySelectorAll('.rate-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
-
   const wrap = document.getElementById('custom-wrap');
   if (el.dataset.rate === 'custom') {
     wrap.classList.add('show');
@@ -490,10 +493,9 @@ function selectRate(el) {
     wrap.classList.remove('show');
     sprayRate = parseFloat(el.dataset.rate);
   }
-
-  // Refresh the live counter label if spraying right now
   if (spraying) {
-    document.getElementById('counter-rate').textContent = `Rate: $${sprayRate.toFixed(2)} USDT/s`;
+    document.getElementById('counter-rate').textContent =
+      `Rate: ${sprayRate.toFixed(4)} BOT/s · stop to send`;
   }
 }
 
@@ -502,13 +504,14 @@ function updateCustom() {
   if (!isNaN(v) && v > 0) {
     sprayRate = v;
     if (spraying) {
-      document.getElementById('counter-rate').textContent = `Rate: $${sprayRate.toFixed(2)} USDT/s`;
+      document.getElementById('counter-rate').textContent =
+        `Rate: ${sprayRate.toFixed(4)} BOT/s · stop to send`;
     }
   }
 }
 
 // ═══════════════════════════════════════════════════
-//  SPRAY — offline counter, single transfer on stop
+//  SPRAY — UI counter only; single tx on stop
 // ═══════════════════════════════════════════════════
 function toggleSpray() {
   if (!spraying) startSpray();
@@ -516,23 +519,30 @@ function toggleSpray() {
 }
 
 function startSpray() {
-  const name = document.getElementById('honoree-name').value.trim();
-  spraying   = true;
-  sprayTotal = 0;
+  sessionName = document.getElementById('honoree-name').value.trim();
+  sessionAddr = document.getElementById('honoree-addr').value.trim();
+
+  spraying        = true;
+  sprayTotal      = 0;
+  activeSessionId = null;
 
   const btn = document.getElementById('spray-btn');
   btn.className = 'spraying';
   document.getElementById('btn-icon').textContent = '🛑';
   document.getElementById('btn-text').textContent = 'STOP SPRAYING';
 
-  showCounter(name);
+  // Lock inputs while spraying
+  document.getElementById('honoree-name').disabled = true;
+  document.getElementById('honoree-addr').disabled = true;
+
+  showCounter(sessionName);
   initCanvas();
   document.getElementById('spray-canvas').classList.add('active');
 
   tickInterval = setInterval(() => {
     sprayTotal += sprayRate * (TICK_MS / 1000);
     updateCounter();
-    spawnDollars(Math.max(2, Math.floor(sprayRate * 3)));
+    spawnDollars(Math.max(2, Math.floor(sprayRate * 4)));
   }, TICK_MS);
 }
 
@@ -540,6 +550,11 @@ async function stopSpray() {
   clearInterval(tickInterval);
   spraying = false;
 
+  // Unlock inputs
+  document.getElementById('honoree-name').disabled = false;
+  document.getElementById('honoree-addr').disabled = false;
+
+  // Let particles fade
   setTimeout(() => {
     document.getElementById('spray-canvas').classList.remove('active');
     particles = [];
@@ -547,45 +562,85 @@ async function stopSpray() {
 
   document.getElementById('live-counter').classList.remove('show');
 
-  const name      = document.getElementById('honoree-name').value.trim();
-  const addr      = document.getElementById('honoree-addr').value.trim();
-  const totalUsdt = Math.max(0.01, parseFloat(sprayTotal.toFixed(6)));
-  const amountWei = ethers.parseUnits(totalUsdt.toFixed(6), usdtDecimals);
+  // Enforce minimum
+  const totalBot = Math.max(MIN_BOT, parseFloat(sprayTotal.toFixed(18)));
+  const amountWei = ethers.parseEther(totalBot.toFixed(18));
 
-  // Balance check
-  if (amountWei > usdtBalance) {
-    const bal = parseFloat(ethers.formatUnits(usdtBalance, usdtDecimals));
+  // Balance check (include a buffer for gas)
+  const gasBuffer = ethers.parseEther('0.005');
+  if (amountWei + gasBuffer > botBalance) {
+    const bal = parseFloat(ethers.formatEther(botBalance));
     setStatus(
-      `❌ Insufficient USDT. You have ${bal.toFixed(2)} USDT but tried to spray ${totalUsdt.toFixed(2)} USDT.`,
+      `❌ Insufficient BOT. You have ${bal.toFixed(4)} BOT but tried to spray ${totalBot.toFixed(4)} BOT (plus gas).`,
       'error'
     );
-    checkReady(); // restore button state
+    checkReady();
     return;
   }
 
-  // Loading state
+  // ── Phase 1: openSpray() ──
   const btn = document.getElementById('spray-btn');
   btn.className = 'loading';
   document.getElementById('btn-icon').textContent = '⏳';
-  document.getElementById('btn-text').textContent = 'Sending USDT…';
-  setStatus('⏳ Confirm the transaction in MetaMask…', 'info');
+  document.getElementById('btn-text').textContent = 'Opening session…';
+  setStatus('⏳ Step 1/2 — Confirm openSpray() in MetaMask…', 'info');
 
+  let sessionId;
   try {
-    const tx = await usdtContract.transfer(addr, amountWei);
-    setStatus('⛓ Transaction sent — confirming…', 'info');
-    await tx.wait();
-    clearStatus();
-    await refreshBalance();
-    showReceipt(name, addr, totalUsdt, tx.hash);
-    showToast(`🎉 ${totalUsdt.toFixed(2)} USDT sprayed at ${name}!`);
+    const openTx = await sprayContract.openSpray(sessionAddr, sessionName, {
+      value: amountWei,
+    });
+    setStatus('⛓ Step 1/2 — Confirming openSpray…', 'info');
+    const openReceipt = await openTx.wait();
+
+    // Parse SprayOpened event to get sessionId
+    const iface = new ethers.Interface(SPRAY_MACHINE_ABI);
+    let found = false;
+    for (const log of openReceipt.logs) {
+      try {
+        const parsed = iface.parseLog({ topics: log.topics, data: log.data });
+        if (parsed && parsed.name === 'SprayOpened') {
+          sessionId = parsed.args.sessionId;
+          found = true;
+          break;
+        }
+      } catch {}
+    }
+
+    if (!found) {
+      // Fallback: derive sessionId from tx sender + inputs (not needed in practice but safe)
+      throw new Error('Could not parse sessionId from SprayOpened event');
+    }
   } catch (e) {
     clearStatus();
-    const msg = e?.reason || e?.shortMessage || e?.message || 'Transaction failed';
-    setStatus('❌ ' + msg.slice(0, 140), 'error');
+    const msg = e?.reason || e?.shortMessage || e?.message || 'openSpray failed';
+    setStatus('❌ ' + msg.slice(0, 200), 'error');
     showToast('Transaction failed', 'error');
+    checkReady();
+    return;
   }
 
-  checkReady(); // always restore button to correct state
+  // ── Phase 2: closeSpray() ──
+  document.getElementById('btn-text').textContent = 'Closing session…';
+  setStatus('⏳ Step 2/2 — Confirm closeSpray() in MetaMask…', 'info');
+
+  try {
+    const closeTx = await sprayContract.closeSpray(sessionId);
+    setStatus('⛓ Step 2/2 — Confirming closeSpray…', 'info');
+    await closeTx.wait();
+
+    clearStatus();
+    await refreshBalance();
+    showReceipt(sessionName, sessionAddr, totalBot, closeTx.hash);
+    showToast(`🎉 ${totalBot.toFixed(4)} BOT sprayed at ${sessionName}!`);
+  } catch (e) {
+    clearStatus();
+    const msg = e?.reason || e?.shortMessage || e?.message || 'closeSpray failed';
+    setStatus('❌ ' + msg.slice(0, 200), 'error');
+    showToast('closeSpray failed', 'error');
+  }
+
+  checkReady();
 }
 
 // ═══════════════════════════════════════════════════
@@ -593,23 +648,24 @@ async function stopSpray() {
 // ═══════════════════════════════════════════════════
 function showCounter(name) {
   document.getElementById('counter-name').textContent = name;
-  document.getElementById('counter-rate').textContent = `Rate: $${sprayRate.toFixed(2)} USDT/s`;
+  document.getElementById('counter-rate').textContent =
+    `Rate: ${sprayRate.toFixed(4)} BOT/s · stop to send`;
   document.getElementById('live-counter').classList.add('show');
 }
 
 function updateCounter() {
   document.getElementById('counter-amount').innerHTML =
-    sprayTotal.toFixed(2) + '<span class="counter-unit">USDT</span>';
+    sprayTotal.toFixed(4) + '<span class="counter-unit">BOT</span>';
 }
 
 function showReceipt(name, addr, total, txHash) {
-  document.getElementById('receipt-amount').textContent = total.toFixed(2);
+  document.getElementById('receipt-amount').textContent = total.toFixed(4);
   document.getElementById('receipt-msg').innerHTML =
     `<strong style="color:var(--text)">${shortenAddr(walletAddress)}</strong> sprayed <strong style="color:var(--gold)">${name}</strong>`;
   document.getElementById('receipt-addr').textContent = 'Sent to: ' + addr;
   const explorer = EXPLORERS[chainId] || 'https://scan.botchain.ai/tx/';
   document.getElementById('receipt-tx').innerHTML =
-    `<a href="${explorer + txHash}" target="_blank">View transaction ↗</a>`;
+    `<a href="${explorer + txHash}" target="_blank">View closeSpray tx ↗</a>`;
   document.getElementById('receipt-overlay').classList.add('show');
 }
 
@@ -617,7 +673,10 @@ function resetForm() {
   document.getElementById('receipt-overlay').classList.remove('show');
   document.getElementById('honoree-name').value = '';
   document.getElementById('honoree-addr').value = '';
+  document.getElementById('honoree-name').disabled = false;
+  document.getElementById('honoree-addr').disabled = false;
   sprayTotal = 0;
+  activeSessionId = null;
   clearStatus();
   checkReady();
 }
@@ -718,7 +777,7 @@ window.addEventListener('load', async () => {
         walletAddress = await signer.getAddress();
         const net     = await provider.getNetwork();
         chainId       = Number(net.chainId);
-        usdtContract  = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
+        sprayContract = new ethers.Contract(SPRAY_MACHINE_ADDRESS, SPRAY_MACHINE_ABI, signer);
         await refreshBalance();
         walletConnected = true;
         onConnected();
