@@ -360,7 +360,7 @@
 // ═══════════════════════════════════════════════════
 //  CONFIG  —  set your deployed SprayMachine address
 // ═══════════════════════════════════════════════════
-const SPRAY_MACHINE_ADDRESS = '0x1701011f5c11aF7047FaaE1159F7e91Bd4696b3D'; // ← replace
+const SPRAY_MACHINE_ADDRESS = '0x0000000000000000000000000000000000000000'; // ← replace
 
 const BOTCHAIN_ID   = 677;
 const EXPLORERS     = { [BOTCHAIN_ID]: 'https://scan.botchain.ai/tx/' };
@@ -385,6 +385,7 @@ let chainId         = 0;
 let botBalance      = 0n; // in wei
 
 let spraying        = false;
+let isSending       = false; // true while openSpray/closeSpray txs are in flight
 let sprayRate       = 0.05;  // BOT per second
 let sprayTotal      = 0;     // BOT accumulated (UI counter only)
 let tickInterval    = null;
@@ -453,8 +454,7 @@ function checkReady() {
   const btn    = document.getElementById('spray-btn');
   const hint   = document.getElementById('btn-hint');
 
-  if (spraying) return;
-  if (btn.classList.contains('loading')) return;
+  if (spraying || isSending) return;
 
   clearStatus();
   document.getElementById('honoree-addr').classList.remove('error-field');
@@ -514,6 +514,7 @@ function updateCustom() {
 //  SPRAY — UI counter only; single tx on stop
 // ═══════════════════════════════════════════════════
 function toggleSpray() {
+  if (isSending) return;           // ignore clicks while txs are in flight
   if (!spraying) startSpray();
   else           stopSpray();
 }
@@ -547,14 +548,16 @@ function startSpray() {
 }
 
 async function stopSpray() {
+  // ── Stop the UI ticker ──
   clearInterval(tickInterval);
-  spraying = false;
+  spraying  = false;
+  isSending = true;
 
   // Unlock inputs
   document.getElementById('honoree-name').disabled = false;
   document.getElementById('honoree-addr').disabled = false;
 
-  // Let particles fade
+  // Particles fade out in background
   setTimeout(() => {
     document.getElementById('spray-canvas').classList.remove('active');
     particles = [];
@@ -563,10 +566,10 @@ async function stopSpray() {
   document.getElementById('live-counter').classList.remove('show');
 
   // Enforce minimum
-  const totalBot = Math.max(MIN_BOT, parseFloat(sprayTotal.toFixed(18)));
+  const totalBot  = Math.max(MIN_BOT, parseFloat(sprayTotal.toFixed(18)));
   const amountWei = ethers.parseEther(totalBot.toFixed(18));
 
-  // Balance check (include a buffer for gas)
+  // Balance check — reserve a little for gas
   const gasBuffer = ethers.parseEther('0.005');
   if (amountWei + gasBuffer > botBalance) {
     const bal = parseFloat(ethers.formatEther(botBalance));
@@ -574,59 +577,56 @@ async function stopSpray() {
       `❌ Insufficient BOT. You have ${bal.toFixed(4)} BOT but tried to spray ${totalBot.toFixed(4)} BOT (plus gas).`,
       'error'
     );
+    isSending = false;
     checkReady();
     return;
   }
 
-  // ── Phase 1: openSpray() ──
+  // ── Lock button for TX phase ──
   const btn = document.getElementById('spray-btn');
   btn.className = 'loading';
   document.getElementById('btn-icon').textContent = '⏳';
-  document.getElementById('btn-text').textContent = 'Opening session…';
-  setStatus('⏳ Step 1/2 — Confirm openSpray() in MetaMask…', 'info');
+  document.getElementById('btn-text').textContent = 'Sending…';
+
+  // ── Phase 1: openSpray() — deposits funds into contract ──
+  setStatus('⏳ Confirm in MetaMask — sending BOT to SprayMachine…', 'info');
 
   let sessionId;
   try {
-    const openTx = await sprayContract.openSpray(sessionAddr, sessionName, {
-      value: amountWei,
-    });
-    setStatus('⛓ Step 1/2 — Confirming openSpray…', 'info');
+    const openTx     = await sprayContract.openSpray(sessionAddr, sessionName, { value: amountWei });
+    setStatus('⛓ Confirming deposit…', 'info');
     const openReceipt = await openTx.wait();
 
-    // Parse SprayOpened event to get sessionId
+    // Parse sessionId from SprayOpened event
     const iface = new ethers.Interface(SPRAY_MACHINE_ABI);
-    let found = false;
     for (const log of openReceipt.logs) {
       try {
         const parsed = iface.parseLog({ topics: log.topics, data: log.data });
-        if (parsed && parsed.name === 'SprayOpened') {
+        if (parsed?.name === 'SprayOpened') {
           sessionId = parsed.args.sessionId;
-          found = true;
           break;
         }
       } catch {}
     }
 
-    if (!found) {
-      // Fallback: derive sessionId from tx sender + inputs (not needed in practice but safe)
-      throw new Error('Could not parse sessionId from SprayOpened event');
-    }
+    if (!sessionId) throw new Error('SprayOpened event not found in receipt — cannot close session');
+
   } catch (e) {
-    clearStatus();
     const msg = e?.reason || e?.shortMessage || e?.message || 'openSpray failed';
     setStatus('❌ ' + msg.slice(0, 200), 'error');
     showToast('Transaction failed', 'error');
+    isSending = false;
     checkReady();
     return;
   }
 
-  // ── Phase 2: closeSpray() ──
-  document.getElementById('btn-text').textContent = 'Closing session…';
-  setStatus('⏳ Step 2/2 — Confirm closeSpray() in MetaMask…', 'info');
+  // ── Phase 2: closeSpray() — pushes funds to honoree ──
+  document.getElementById('btn-text').textContent = 'Releasing to honoree…';
+  setStatus('⏳ Confirm in MetaMask — releasing BOT to celebrant…', 'info');
 
   try {
     const closeTx = await sprayContract.closeSpray(sessionId);
-    setStatus('⛓ Step 2/2 — Confirming closeSpray…', 'info');
+    setStatus('⛓ Confirming release…', 'info');
     await closeTx.wait();
 
     clearStatus();
@@ -634,12 +634,16 @@ async function stopSpray() {
     showReceipt(sessionName, sessionAddr, totalBot, closeTx.hash);
     showToast(`🎉 ${totalBot.toFixed(4)} BOT sprayed at ${sessionName}!`);
   } catch (e) {
-    clearStatus();
     const msg = e?.reason || e?.shortMessage || e?.message || 'closeSpray failed';
-    setStatus('❌ ' + msg.slice(0, 200), 'error');
-    showToast('closeSpray failed', 'error');
+    // Funds are now stuck in contract — tell user the sessionId so they can rescue
+    setStatus(
+      `❌ closeSpray failed: ${msg.slice(0, 120)}. Your sessionId: ${sessionId} — call closeSpray manually to recover funds.`,
+      'error'
+    );
+    showToast('closeSpray failed — see status for recovery info', 'error');
   }
 
+  isSending = false;
   checkReady();
 }
 
